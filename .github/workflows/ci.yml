@@ -27,21 +27,44 @@ jobs:
         run: docker build -t dds-devops-demo:test .
 
       - name: Verificar funcionamiento
+        shell: bash
         run: |
+          set -euo pipefail
+
+          cleanup() {
+            docker rm -f web-test >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
           docker run -d --name web-test \
             -p 127.0.0.1:8080:80 \
             dds-devops-demo:test
-          for i in $(seq 1 15); do
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/)
-            if [ "$HTTP_CODE" -eq 200 ]; then
-              echo "Prueba exitosa (Código HTTP: $HTTP_CODE)"
+
+          for i in $(seq 1 20); do
+            if ! docker ps --format '{{.Names}}' | grep -qx web-test; then
+              echo "El contenedor web-test no esta corriendo"
+              docker ps -a
+              docker logs web-test || true
+              exit 1
+            fi
+
+            HTTP_CODE=$(curl -s -o /tmp/body.html -w "%{http_code}" \
+              --max-time 2 http://127.0.0.1:8080/ || echo 000)
+
+            if [ "$HTTP_CODE" = "200" ] && [ -s /tmp/body.html ]; then
+              echo "Prueba exitosa (HTTP $HTTP_CODE, contenido no vacio)"
               exit 0
             fi
+
+            echo "Intento $i: HTTP=$HTTP_CODE, esperando..."
             sleep 1
           done
-          docker logs web-test
+
+          echo "La verificacion fallo tras 20 intentos"
+          docker ps -a
+          docker logs web-test || true
           exit 1
-          
+
       - name: Autenticarse en GHCR
         uses: docker/login-action@v3
         with:
