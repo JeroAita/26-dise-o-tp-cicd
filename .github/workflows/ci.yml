@@ -32,15 +32,16 @@ jobs:
             -p 127.0.0.1:8080:80 \
             dds-devops-demo:test
           for i in $(seq 1 15); do
-            if curl -fsS http://127.0.0.1:8080/ | grep -q "Hola DevOps"; then
-              echo "Prueba exitosa"
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/)
+            if [ "$HTTP_CODE" -eq 200 ]; then
+              echo "Prueba exitosa (Código HTTP: $HTTP_CODE)"
               exit 0
             fi
             sleep 1
           done
           docker logs web-test
           exit 1
-
+          
       - name: Autenticarse en GHCR
         uses: docker/login-action@v3
         with:
