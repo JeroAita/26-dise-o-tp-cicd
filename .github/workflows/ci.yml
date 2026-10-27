@@ -27,6 +27,7 @@ jobs:
           DOCKER_HUB_USERNAME: ${{ vars.DOCKER_HUB_USERNAME }}
 
       - name: Construir imagen Docker
+        shell: bash
         run: docker build -t dds-devops-demo:test .
 
       - name: Verificar funcionamiento
@@ -85,16 +86,16 @@ jobs:
         shell: bash
         run: |
           TAG="${GITHUB_SHA::7}"
-          
+
           docker tag dds-devops-demo:test \
             "${{ steps.image.outputs.ghcr }}:$TAG"
-          
+
           docker tag dds-devops-demo:test \
             "${{ steps.image.outputs.ghcr }}:latest"
 
           docker tag dds-devops-demo:test \
             "${{ steps.image.outputs.hub }}:$TAG"
-          
+
           docker tag dds-devops-demo:test \
             "${{ steps.image.outputs.hub }}:latest"
 
