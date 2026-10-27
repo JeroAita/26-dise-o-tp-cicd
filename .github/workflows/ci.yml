@@ -79,7 +79,7 @@ jobs:
         uses: docker/login-action@v4
         with:
           username: ${{ vars.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+          password: ${{ secrets.DOCKER_HUB_PAT }}
 
       - name: Etiquetar imagen para ambos registries
         shell: bash
