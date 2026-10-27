@@ -17,11 +17,11 @@ jobs:
       - name: Obtener codigo
         uses: actions/checkout@v4
 
-      - name: Definir nombre de imagen
+      - name: Definir nombres de imagen
         id: image
         shell: bash
         run: |
-          echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "ghcr=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
           echo "hub=${DOCKER_HUB_USERNAME,,}/${GITHUB_REPOSITORY#*/}" >> "$GITHUB_OUTPUT"
         env:
           DOCKER_HUB_USERNAME: ${{ vars.DOCKER_HUB_USERNAME }}
