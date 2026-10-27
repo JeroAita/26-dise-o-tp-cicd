@@ -22,6 +22,9 @@ jobs:
         shell: bash
         run: |
           echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "hub=${DOCKER_HUB_USERNAME,,}/${GITHUB_REPOSITORY#*/}" >> "$GITHUB_OUTPUT"
+        env:
+          DOCKER_HUB_USERNAME: ${{ vars.DOCKER_HUB_USERNAME }}
 
       - name: Construir imagen Docker
         run: docker build -t dds-devops-demo:test .
@@ -71,13 +74,40 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Autenticarse en Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Etiquetar imagen
+      - name: Etiquetar imagen para ambos registries
+        shell: bash
         run: |
+          TAG="${GITHUB_SHA::7}"
+          
           docker tag dds-devops-demo:test \
-            ${{ steps.image.outputs.name }}:${GITHUB_SHA::7}
+            "${{ steps.image.outputs.ghcr }}:$TAG"
+          
+          docker tag dds-devops-demo:test \
+            "${{ steps.image.outputs.ghcr }}:latest"
+
+          docker tag dds-devops-demo:test \
+            "${{ steps.image.outputs.hub }}:$TAG"
+          
+          docker tag dds-devops-demo:test \
+            "${{ steps.image.outputs.hub }}:latest"
 
       - name: Publicar imagen en GHCR
+        shell: bash
         run: |
-          docker push \
-            ${{ steps.image.outputs.name }}:${GITHUB_SHA::7}
+          TAG="${GITHUB_SHA::7}"
+          docker push "${{ steps.image.outputs.ghcr }}:$TAG"
+          docker push "${{ steps.image.outputs.ghcr }}:latest"
+
+      - name: Publicar imagen en Docker Hub
+        shell: bash
+        run: |
+          TAG="${GITHUB_SHA::7}"
+          docker push "${{ steps.image.outputs.hub }}:$TAG"
+          docker push "${{ steps.image.outputs.hub }}:latest"
