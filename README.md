@@ -50,4 +50,7 @@ A partir del proyecto utilizado en la práctica anterior:
 4. Publicar la imagen utilizando dos etiquetas: latest y una asociada al commit.
 5. Verificar que ambas imágenes estén disponibles y puedan ejecutarse localmente mediante docker run.
 
+## Parte 3: CD en Render
+Render: servicio de computación en la nube que soporta despliegues continuos. 
 
+https://dashboard.render.com/

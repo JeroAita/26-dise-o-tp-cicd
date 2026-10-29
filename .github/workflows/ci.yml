@@ -112,3 +112,18 @@ jobs:
           TAG="${GITHUB_SHA::7}"
           docker push "${{ steps.image.outputs.hub }}:$TAG"
           docker push "${{ steps.image.outputs.hub }}:latest"
+
+      - name: Desplegar en Render
+        shell: bash
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${RENDER_DEPLOY_HOOK:-}" ]; then
+            echo "Falta configurar el secret RENDER_DEPLOY_HOOK"
+            exit 1
+          fi
+
+          curl --fail --silent --show-error -X POST "$RENDER_DEPLOY_HOOK"
+          echo "Deploy hook de Render ejecutado"
